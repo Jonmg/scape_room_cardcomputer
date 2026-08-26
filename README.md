@@ -1,166 +1,269 @@
 # CardputerLab
 
-Ejemplos para **M5Stack Cardputer ADV** (ESP32-S3FN8) pensados para
-cacharrear con peques de 9 a 14 años.
+Repositorio en español para aprender a programar la **M5Stack Cardputer ADV**
+con Arduino, probar sus periféricos y construir pequeños *escape rooms* para
+cacharrear con niños de 9 a 14 años.
 
-Todo vive aquí, incluso lo adaptado de los ejemplos oficiales de M5Stack
-(cada sketch dice en su cabecera de dónde viene).
+La idea es avanzar de lo sencillo a lo completo: primero pantalla, teclado,
+sonido, luces y RFID por separado; después se combinan en juegos con pistas,
+tarjetas escondidas, códigos y escenas. Los ejemplos están muy comentados y
+cada sketch tiene un bloque `🔧 CAMBIA ESTO` con valores que se pueden modificar
+sin tener que entender todo el programa.
 
-## Cómo subir un programa
+> **Aviso para jugadores:** las guías de preparación y parte de este README
+> contienen soluciones. Si vas a jugar, deja que las lea únicamente quien
+> organice la partida.
+
+## Qué hay en el repositorio
+
+```text
+CardputerLab/
+├── L1_Hola/                    pantalla, texto y batería
+├── L2_Teclado/                 teclado, pantalla y altavoz
+├── L3_HexArcoiris/             animaciones con 37 LED RGB
+├── L4_RfidLeer/                lectura de tarjetas RFID
+├── L5_RfidEscribir/            escritura segura de datos para E3
+├── E1_EscapeRoom/              escape room de iniciación
+├── E2_MisterioJuanita/         aventura de cuatro tarjetas
+├── E3_EscapeRoomAvanzado/      juego completo con material imprimible
+├── sube.sh                     compila, carga y abre el monitor serie
+├── HANDOFF.md                  notas técnicas y estado de las pruebas
+├── LICENSE                     licencia MIT
+└── README.md                   esta guía
+```
+
+Las carpetas `L*` son lecciones independientes. Las carpetas `E*` contienen
+un juego, su firmware y las guías necesarias para prepararlo. Cada sketch de
+Arduino está dentro de una carpeta con su mismo nombre, como espera el IDE.
+
+## La placa: M5Stack Cardputer ADV
+
+El Cardputer ADV es un pequeño ordenador programable basado en un
+**ESP32-S3FN8**. No ejecuta un sistema operativo de escritorio: al cargar un
+sketch, ese programa controla directamente la pantalla, el teclado y el resto
+del hardware.
+
+| Elemento integrado | Para qué sirve en estos proyectos |
+|---|---|
+| ESP32-S3 de doble núcleo, hasta 240 MHz y 8 MB de flash | ejecuta los sketches y guarda el programa |
+| Pantalla de 1,14", 240 × 135 píxeles | muestra menús, pistas, códigos y dibujos |
+| Teclado de 56 teclas | introduce texto y soluciones |
+| Altavoz de 1 W | reproduce tonos y confirma acciones |
+| Batería interna de 1750 mAh | permite jugar sin mantener el USB conectado |
+| Botón `G0` | entrada adicional y reinicio de las partidas |
+| Wi-Fi y Bluetooth LE | disponibles para futuras ampliaciones |
+| IMU BMI270 de seis ejes | mide movimiento y orientación; aún no se usa aquí |
+| Emisor infrarrojo | puede controlar aparatos o formar parte de nuevas pruebas |
+| Ranura microSD | permite guardar pistas y datos sin recompilar; ampliación futura |
+| Port A Grove y conector EXT | conectan sensores y actuadores externos |
+
+Documentación del fabricante:
+[Cardputer ADV](https://docs.m5stack.com/en/core/Cardputer-Adv).
+
+### Dos ideas básicas de Arduino
+
+- `setup()` se ejecuta una sola vez al encender o reiniciar la placa. Se usa
+  para preparar la pantalla, el teclado y los módulos.
+- `loop()` se repite continuamente. Lee entradas, actualiza el estado del
+  juego y produce salidas.
+
+Una forma útil de pensar en cada programa es:
+
+```text
+entrada (teclado o RFID) → proceso (reglas del juego) → salida (pantalla, sonido o luces)
+```
+
+## Sensores y actuadores utilizados
+
+### Unit HEX: luz como salida
+
+El **Unit HEX** es un actuador formado por 37 LED RGB direccionables. Cada LED
+puede recibir un color distinto, expresado normalmente con tres valores:
+rojo, verde y azul, de 0 a 255. Todos comparten alimentación y una única línea
+digital de datos; el programa los controla con `Adafruit_NeoPixel`.
+
+Se utiliza para enseñar colores RGB, bucles `for`, animaciones y consumo
+eléctrico. El brillo se mantiene bajo porque encender muchos LED a la vez
+consume bastante más que dibujar en la pantalla.
+
+Documentación: [M5Stack Unit HEX](https://docs.m5stack.com/en/unit/hex).
+
+### Unit RFID2: tarjetas como entrada y memoria
+
+El **Unit RFID2** es un lector/escritor de tarjetas de 13,56 MHz basado en el
+chip WS1850S. Se comunica por el bus **I²C** y utiliza la dirección `0x28`.
+
+- El **UID** identifica la tarjeta y viene grabado de fábrica.
+- Algunas tarjetas también tienen memoria de usuario que se puede leer y
+  escribir.
+- `L4_RfidLeer` solo lee el UID.
+- `L5_RfidEscribir` escribe zonas de usuario, nunca el UID, el bloque de
+  fabricante ni los bloques de claves.
+
+I²C permite conectar varios dispositivos a los mismos dos cables, `SDA` y
+`SCL`, siempre que tengan direcciones compatibles. En el Cardputer ADV esos
+cables salen por el Port A como `G2` y `G1`.
+
+Documentación: [M5Stack Unit RFID2](https://docs.m5stack.com/en/unit/rfid2).
+
+### Unit Hub: un repartidor, no un traductor
+
+El **Unit Hub** es pasivo: duplica alimentación y señales, pero no crea buses
+independientes ni cambia el protocolo. Es útil para varios módulos I²C, pero
+no resuelve por sí solo el conflicto entre el RFID2 y el HEX explicado más
+abajo.
+
+## Ruta de aprendizaje
+
+| Paso | Sketch | Hardware | Qué se practica |
+|---|---|---|---|
+| 1 | [`L1_Hola`](L1_Hola/L1_Hola.ino) | solo la placa | `setup()`, `loop()`, texto, coordenadas y batería |
+| 2 | [`L2_Teclado`](L2_Teclado/L2_Teclado.ino) | solo la placa | entrada → proceso → salida, teclado y tonos |
+| 3 | [`L3_HexArcoiris`](L3_HexArcoiris/L3_HexArcoiris.ino) | Unit HEX | bucles, píxeles, RGB, animación y brillo |
+| 4 | [`L4_RfidLeer`](L4_RfidLeer/L4_RfidLeer.ino) | Unit RFID2 y tarjetas | I²C, dirección del módulo y UID |
+| 5 | [`L5_RfidEscribir`](L5_RfidEscribir/L5_RfidEscribir.ino) | Unit RFID2 y tarjetas compatibles | memoria, lectura, escritura y verificación |
+
+Una buena dinámica con niños es ejecutar primero el ejemplo sin tocarlo,
+cambiar después una sola cosa del bloque `🔧 CAMBIA ESTO` y observar el
+resultado. Color, nombre, volumen, brillo o velocidad dan cambios visibles sin
+introducir demasiados conceptos a la vez.
+
+## Escape rooms incluidos
+
+| Juego | Nivel | Material | Mecánica principal |
+|---|---|---|---|
+| [`E1_EscapeRoom`](E1_EscapeRoom/) | iniciación | HEX, RFID2 y 3 tarjetas | descifrar colores, introducir un código y encontrar tarjetas |
+| [`E2_MisterioJuanita`](E2_MisterioJuanita/) | intermedio | HEX, RFID2 y 4 tarjetas | recuperar cuatro memorias y ordenarlas con una señal luminosa |
+| [`E3_EscapeRoomAvanzado`](E3_EscapeRoomAvanzado/) | avanzado | HEX, RFID2, 3 tarjetas preparadas y hojas impresas | relacionar colores, símbolos, pistas y un codificador |
+
+### E1: El laboratorio de las luces
+
+Es la partida tutorial. El HEX muestra una secuencia de colores, los jugadores
+la convierten en un código y después siguen pistas para encontrar tres tarjetas
+RFID. Incluye una
+[guía de preparación](E1_EscapeRoom/GUIA_PREPARACION.md) y una
+[hoja para los niños](E1_EscapeRoom/GUIA_NINOS.md).
+
+### E2: El misterio de Juanita
+
+Una aventura más larga con cuatro tarjetas escondidas. Cada una recupera una
+memoria de color y número; al final, el HEX revela el orden correcto. Incluye
+[guía de preparación](E2_MisterioJuanita/GUIA_PREPARACION_E2.md) y
+[hoja del equipo](E2_MisterioJuanita/GUIA_NINOS_E2.md).
+
+### E3: Las tres tarjetas de colores
+
+La partida más abierta: los jugadores encuentran dos hojas y tres tarjetas.
+Cada tarjeta genera una figura coloreada en el HEX, pero deben deducir cómo
+relacionar las figuras, los colores, el tablero y el codificador. Todo el
+material está explicado en el
+[README específico de E3](E3_EscapeRoomAvanzado/README.md).
+
+Antes de jugar, `L5_RfidEscribir` prepara las tres tarjetas con identificadores
+de color y figura. Consulta su [guía de uso](L5_RfidEscribir/GUIA.md) y no uses
+tarjetas que ya contengan información importante.
+
+## Hardware necesario
+
+Para las lecciones básicas basta el Cardputer ADV y un cable USB-C de datos.
+Para completar todo el recorrido se utiliza:
+
+- M5Stack Cardputer ADV.
+- Unit HEX y cable Grove.
+- Unit RFID2 y tarjetas o llaveros RFID compatibles de 13,56 MHz.
+- Un cable Grove a conectores hembra de 2,54 mm para usar el HEX desde `G4`
+  mientras el RFID2 permanece en el Port A.
+- Opcionalmente, un Unit Hub para ampliar módulos I²C; no es necesario para
+  los juegos actuales.
+
+## Preparar el entorno
+
+Los ejemplos se han probado con Arduino y estas librerías:
+
+- `M5Cardputer`
+- `M5Unified`
+- `M5GFX`
+- `Adafruit_NeoPixel`
+- `MFRC522_I2C`
+
+En Arduino IDE, abre el `.ino` deseado y selecciona la placa **M5Cardputer**.
+El identificador usado por Arduino CLI es:
+
+```text
+m5stack:esp32:m5stack_cardputer
+```
+
+La [guía Arduino oficial del Cardputer ADV](https://docs.m5stack.com/en/core/Cardputer-Adv)
+explica cómo instalar el soporte de la placa. Este repositorio incluye además
+un script para quien ya tenga `arduino-cli` y las librerías instaladas:
 
 ```bash
-./sube.sh L1_Hola            # compila + sube + monitor serie
+./sube.sh L1_Hola                 # compila, sube y abre el monitor serie
 ./sube.sh L3_HexArcoiris --solo   # solo compila, sin placa conectada
-./sube.sh E1_EscapeRoom      # primer juego completo
+./sube.sh E1_EscapeRoom           # carga el primer juego completo
 ```
 
-O desde el Arduino IDE: `Archivo > Abrir` la carpeta del sketch.
-Placa: **M5Cardputer** (`m5stack:esp32:m5stack_cardputer`).
+Cada carga sustituye el programa anterior de la placa. El código fuente del
+repositorio no se pierde: basta volver a cargar otro sketch cuando se quiera
+cambiar de lección o de juego.
 
-En cada sketch hay un bloque marcado `🔧 CAMBIA ESTO` con los valores
-que se pueden tocar sin miedo. Ahí es donde empiezan los niños.
+## Conexiones usadas
 
-## Lecciones
+| Conexión | Pines o colores |
+|---|---|
+| Port A Grove | negro = GND, rojo = 5 V, amarillo = `G2`, blanco = `G1` |
+| I²C externo del Port A | `SDA = G2`, `SCL = G1` |
+| HEX cuando se usa solo | Port A; señal de datos por `G2` |
+| RFID2 | Port A; I²C en `G2/G1`, dirección `0x28` |
+| HEX junto con RFID2 | `G4 + GND + 5VOUT` en el conector EXT |
+| Botón programable | `G0` |
 
-| # | Sketch | Hardware | Qué se aprende |
-|---|--------|----------|----------------|
-| 1 | `L1_Hola` | solo placa | `setup()` vs `loop()`, coordenadas de pantalla |
-| 2 | `L2_Teclado` | solo placa | entrada → proceso → salida |
-| 3 | `L3_HexArcoiris` | Unit HEX | bucles `for`, colores RGB, consumo eléctrico |
-| 4 | `L4_RfidLeer` | Unit RFID2 | I2C, identificadores únicos (UID) |
-| 5 | `L5_RfidEscribir` | Unit RFID2 | memoria de usuario, lectura, escritura y verificación |
+Otros pines integrados útiles:
 
-## Escape room 1: El laboratorio de las luces
+| Función | Pines |
+|---|---|
+| I²C interno: teclado, IMU y códec | `SDA = G8`, `SCL = G9` |
+| microSD | `CLK=G40`, `MOSI=G14`, `MISO=G39`, `CS=G12` |
+| altavoz I²S | `BCK=G41`, `WS=G43`, `DOUT=G42` |
+| emisor infrarrojo | `G44` |
 
-`E1_EscapeRoom` ya contiene un recorrido completo:
+### Conflicto entre HEX y RFID2
 
-1. El **HEX** emite cuatro colores. La pantalla da una tabla de
-   sustitución color → número.
-2. Los niños escriben el código resultante con el **teclado**.
-3. El progreso se guarda. Se apaga la placa y se cambia HEX por RFID2.
-4. El juego continúa buscando **tres tarjetas RFID diferentes**.
-5. La tercera tarjeta abre la escena de victoria.
+El RFID2 habla I²C por `G2/G1`. El HEX no es I²C: utiliza `G2` como línea de
+datos para sus LED. Si ambos se conectan a un Hub pasivo, las señales del HEX
+interfieren con el bus I²C.
 
-Guías de la partida tutorial:
-
-- [`GUIA_PREPARACION.md`](E1_EscapeRoom/GUIA_PREPARACION.md): montaje, escondites,
-  solución, ensayo y resolución de problemas.
-- [`GUIA_NINOS.md`](E1_EscapeRoom/GUIA_NINOS.md): hoja imprimible sin soluciones para
-  seguir la misión y anotar los resultados.
-
-Ahora está configurado para mantener ambos módulos conectados:
+Para usarlos a la vez, los juegos dejan el **RFID2 en el Port A** y conectan el
+**HEX a `G4 + GND + 5VOUT` del EXT**. Sus sketches ya están configurados así:
 
 ```cpp
-const bool CAMBIO_MANUAL_MODULOS = false;
 #define PIN_HEX 4
-const bool MODO_DEMO_UID = true;
 ```
 
-El RFID2 va al Port A y el HEX a `G4 + GND + 5VOUT` del conector EXT.
+`L3_HexArcoiris`, al utilizar únicamente el HEX, conserva `PIN_HEX 2` para
+poder conectarlo directamente al Port A.
 
-El modo demo acepta tres tarjetas distintas y muestra sus UID. Cuando estén
-anotados, se pegan en `UID_TARJETAS` y se cambia `MODO_DEMO_UID` a `false`.
+## Alimentación y cuidados
 
-La alternativa sin cable EXT es cambiar `PIN_HEX` a `2` y
-`CAMBIO_MANUAL_MODULOS` a `true`; entonces hay que intercambiar HEX y RFID2
-en Port A siguiendo las instrucciones que aparecen en pantalla.
+- Mantén bajo el brillo del HEX, especialmente cuando el Cardputer funcione
+  con batería.
+- En el selector del Port A, `5VOUT` hace que el Cardputer alimente el módulo;
+  es la opción utilizada para jugar con batería.
+- El interruptor lateral controla la batería, pero el USB puede mantener la
+  placa encendida. Para cargar la batería, el interruptor debe estar en `ON`.
+- Usa un cable USB-C que transmita datos: algunos cables solo sirven para
+  cargar.
+- No escribas tarjetas RFID que tengan datos importantes. El escritor de este
+  repositorio evita las zonas críticas, pero no puede adivinar qué datos de
+  usuario quieres conservar.
 
-## Escape room 2: El misterio de Juanita
+## Licencia y atribuciones
 
-`E2_MisterioJuanita` es una aventura más larga con ambiente de fantasmas,
-cuatro tarjetas y una ruta por ocho estancias. Juanita es una presencia
-protectora: los jugadores recuperan cuatro memorias de color y número, y el
-HEX indica al final cómo ordenarlas para formar el código del teclado.
+El proyecto se publica bajo la [licencia MIT](LICENSE). Puedes usar, copiar,
+modificar y redistribuir el código, también en proyectos privados o
+comerciales. La condición principal es conservar el aviso de copyright y el
+texto de la licencia. El software se entrega sin garantía y sus autores no
+asumen responsabilidad por daños derivados de su uso.
 
-```bash
-./sube.sh E2_MisterioJuanita
-```
-
-Material de la partida:
-
-- [`GUIA_PREPARACION_E2.md`](E2_MisterioJuanita/GUIA_PREPARACION_E2.md): montaje, ruta,
-  solución y dirección del juego.
-- [`GUIA_NINOS_E2.md`](E2_MisterioJuanita/GUIA_NINOS_E2.md): hoja del equipo sin spoilers.
-
-No utiliza notas escondidas: la pantalla conduce directamente a las cuatro
-tarjetas de los dormitorios.
-
-El escape room de prueba `E1_EscapeRoom` permanece sin cambios.
-
-## Escritura RFID y escape room avanzado
-
-`L5_RfidEscribir` prepara tres tarjetas con un identificador de color y figura:
-`E3|RO|FLECHA`, `E3|AZ|ANILLO` y `E3|VE|X`. Trabaja en zonas de usuario,
-no cambia el UID ni las claves y verifica los datos volviéndolos a leer. Consulta su
-[`GUIA.md`](L5_RfidEscribir/GUIA.md) antes de usar tarjetas que contengan
-información.
-
-`E3_EscapeRoomAvanzado` guía la búsqueda de dos hojas y tres tarjetas. Cada
-tarjeta hace que el HEX muestre una figura coloreada, pero la pantalla no
-explica cómo relacionarla con los huecos, la prueba de las luces y el
-codificador. Los jugadores deben descubrirlo. Las figuras cuentan «desde la X,
-sigue la flecha hasta el portal» y después se traducen con la tabla. La
-configuración de prueba usa `VERDE=1`, `ROJO=2`, `AZUL=3` y da `948`.
-
-```bash
-./sube.sh L5_RfidEscribir
-./sube.sh E3_EscapeRoomAvanzado
-```
-
-Todo el material de E3 está en
-[`E3_EscapeRoomAvanzado/`](E3_EscapeRoomAvanzado/README.md), incluidas las
-guías, la tabla codificadora del HEX, el tablero imprimible y las soluciones
-del organizador.
-
-## Pinout del Cardputer ADV que usamos
-
-| Qué | Pines |
-|-----|-------|
-| **Port A (Grove)** | negro=GND, rojo=5V, **amarillo=G2**, **blanco=G1** |
-| I2C externo (Port A) | SDA = **G2**, SCL = **G1** |
-| I2C interno | SDA = G8, SCL = G9 (teclado TCA8418, IMU BMI270, códec ES8311) |
-| microSD | CLK=G40, MOSI=G14, MISO=G39, CS=G12 |
-| Altavoz I2S | BCK=G41, WS=G43, DOUT=G42 |
-| Botón G0 | G0 |
-| IR | G44 |
-| EXT 14 pines, libres | G3, G4, G5, G6, G13, G15 + 5V y GND |
-
-## ⚠️ El conflicto HEX + RFID2 (y cómo se resuelve)
-
-- El **RFID2 habla I2C** por G2 (SDA) y G1 (SCL).
-- El **Unit HEX no es I2C**: es un bus digital WS2812 que usa G2 como
-  línea de datos.
-
-Si los enchufas a la vez al **Unit Hub**, no funciona: el Hub es un
-repartidor **pasivo**, todos sus puertos comparten los mismos G1/G2.
-Las señales de los LEDs se meten en el bus I2C y lo rompen.
-El Hub es estupendo para **varios sensores I2C**, no para mezclar.
-
-**Solución para usar los dos a la vez:** llevar el HEX al conector
-**EXT**, a un GPIO libre (por ejemplo **G4**) + **5VOUT** + **GND**, y dejar
-Port A / Hub solo para I2C. Luego basta cambiar en `L3_HexArcoiris`:
-
-```cpp
-#define PIN_HEX  4     // antes 2
-```
-
-Hace falta un cable Grove-a-jumper (hembra 2.54) para pinchar en el EXT.
-
-## Consumo
-
-La documentación del NeoHEX mide unos **568 mA** con los 37 LEDs a blanco
-pleno. Los sketches usan brillo bajo y un tope de 60 para cuidar la batería
-y evitar picos innecesarios.
-
-## Alimentación del Port A en el Cardputer ADV
-
-El selector junto al Port A decide de dónde sale el cable rojo del Grove:
-
-- `5VOUT`: el Cardputer alimenta el módulo; es la posición para trabajar
-  desde la batería.
-- `5VIN`: usa la línea de entrada de 5 V; con USB conectado también tiene
-  tensión.
-
-El interruptor lateral `ON/OFF` controla la batería, no corta el USB. Para
-cargar la batería debe estar en `ON`. El pulsador `G0` es programable y
-también permite entrar en el bootloader al encender.
+Algunos sketches parten de ejemplos oficiales de M5Stack publicados también
+bajo MIT. Sus cabeceras conservan el origen, autoría y licencia correspondientes.
