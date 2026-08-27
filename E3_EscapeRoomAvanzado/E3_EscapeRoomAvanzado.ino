@@ -32,45 +32,45 @@
 const char* NOMBRE_JUEGO = "EL MENSAJE DE VEGA";
 
 const char* INTRO_LINEAS[4] = {
-    "Vega desaparecio buscando un portal.",
-    "Dejo pruebas y tres tarjetas.",
-    "Recupera todos sus fragmentos.",
-    "Descubre que quiso contar."
+    "Vega desaparecio.",
+    "Dejo 3 tarjetas.",
+    "Recupera fragmentos",
+    "y descubre su mensaje."
 };
 
 const char* MENSAJE_FINAL[2] = {
-    "El ultimo mensaje de Vega era cierto.",
-    "La puerta secreta se ha abierto."
+    "Vega tenia razon.",
+    "La puerta se abrio."
 };
 
 const char* RETO_HISTORIA[3] = {
-    "Ya tienes todo lo que dejo Vega.",
-    "Tres figuras forman un mensaje.",
-    "Como deben leerse? Que cuentan?"
+    "3 figuras",
+    "un mensaje.",
+    "Como se leen?"
 };
 
 // Lugares de las dos hojas. Solo se imprimen por Serial para el organizador.
 const char* NOMBRE_ESCONDITE_PRUEBA = "SALON, CERCA DE UNA LAMPARA";
 const char* PISTA_PRUEBA[3] = {
-    "Busca donde todos se reunen,",
-    "cerca de una luz que vence",
-    "la oscuridad de la casa."
+    "Donde os reunis",
+    "cerca de una luz",
+    "contra oscuridad"
 };
 
 const char* NOMBRE_ESCONDITE_CODIFICADOR = "COCINA";
 const char* PISTA_CODIFICADOR[3] = {
-    "Busca donde una receta",
-    "transforma cosas diferentes",
-    "en un resultado nuevo."
+    "Una receta cambia",
+    "cosas distintas",
+    "en algo nuevo."
 };
 
 // Se muestran en este orden. Las tarjetas se aceptan una por una.
 const char* NOMBRE_ESCONDITE[3] = { "LIBROS", "CDS", "JUGUETES" };
 
 const char* PISTAS_BUSQUEDA[3][3] = {
-    { "El primer fragmento descansa", "donde mil voces esperan", "cerradas y de pie." },
-    { "El segundo suena en silencio", "entre circulos que guardan", "canciones atrapadas." },
-    { "El ultimo juega escondido", "donde munecos y juegos", "esperan otra aventura." }
+    { "Muchas voces", "esperan de pie.", "En silencio." },
+    { "Canciones quietas", "esperan girar.", "En silencio." },
+    { "Juegos y munecos", "esperan juntos.", "Otra aventura." }
 };
 
 enum SimboloId : uint8_t {
@@ -273,44 +273,41 @@ void apagaHex() {
 
 void dibujaIntro() {
     limpiaPantalla(MAGENTA, NOMBRE_JUEGO);
-    M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setCursor(4, 31);
-    for (int i = 0; i < 4; i++) M5Cardputer.Display.println(INTRO_LINEAS[i]);
     M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.setTextColor(WHITE, BLACK);
+    M5Cardputer.Display.setCursor(4, 30);
+    for (int i = 0; i < 4; i++) M5Cardputer.Display.println(INTRO_LINEAS[i]);
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-    M5Cardputer.Display.setCursor(4, 90);
-    M5Cardputer.Display.println("ENTER: comenzar");
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setCursor(4, 98);
+    M5Cardputer.Display.println("ENTER: comienza");
     M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
-    M5Cardputer.Display.setCursor(4, 121);
-    M5Cardputer.Display.println("G0 3 s: borrar la partida");
+    M5Cardputer.Display.setCursor(4, 116);
+    M5Cardputer.Display.println("G0: reinicia");
 }
 
 void dibujaBuscaPrueba() {
-    limpiaPantalla(CYAN, "PRUEBA PERDIDA");
-    M5Cardputer.Display.setTextSize(1);
+    limpiaPantalla(CYAN, "PRUEBA DE LUCES");
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setCursor(4, 30);
-    M5Cardputer.Display.println("Antes de las tarjetas, encuentra la");
-    M5Cardputer.Display.println("PRUEBA DE LAS TRES LUCES:");
+    M5Cardputer.Display.setCursor(4, 34);
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
     for (int i = 0; i < 3; i++) {
         M5Cardputer.Display.println(PISTA_PRUEBA[i]);
     }
     M5Cardputer.Display.setTextColor(GREEN, BLACK);
-    M5Cardputer.Display.setCursor(4, 113);
-    M5Cardputer.Display.println("ENTER cuando la tengais");
+    M5Cardputer.Display.setCursor(4, 112);
+    M5Cardputer.Display.println("ENTER: continua");
     Serial.printf("Hoja de orden, escondite: %s\n", NOMBRE_ESCONDITE_PRUEBA);
 }
 
 void dibujaBusqueda() {
     if (!rfidListo) {
         limpiaPantalla(RED, "NO VEO EL RFID2");
-        M5Cardputer.Display.setTextSize(1);
+        M5Cardputer.Display.setTextSize(2);
         M5Cardputer.Display.setTextColor(WHITE, BLACK);
         M5Cardputer.Display.setCursor(4, 42);
-        M5Cardputer.Display.println("Revisa el cable del Port A y reinicia.");
+        M5Cardputer.Display.println("Revisa el Port A");
+        M5Cardputer.Display.println("y reinicia.");
         return;
     }
 
@@ -318,19 +315,15 @@ void dibujaBusqueda() {
     char cabecera[20];
     snprintf(cabecera, sizeof(cabecera), "RASTRO %d DE 3", i + 1);
     limpiaPantalla(MAGENTA, cabecera);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setCursor(4, 32);
-    M5Cardputer.Display.println("Vega dejo esta pista:");
+    M5Cardputer.Display.setCursor(4, 34);
     for (int linea = 0; linea < 3; linea++) {
         M5Cardputer.Display.println(PISTAS_BUSQUEDA[i][linea]);
     }
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-    M5Cardputer.Display.setCursor(4, 82);
-    M5Cardputer.Display.println("Acerca la tarjeta encontrada al RFID2.");
-    M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
-    M5Cardputer.Display.setCursor(4, 112);
-    M5Cardputer.Display.println("Retirala al terminar la lectura");
+    M5Cardputer.Display.setCursor(4, 106);
+    M5Cardputer.Display.println("Acercala al RFID2");
     Serial.printf("Pista %d, escondite del organizador: %s\n",
                   i + 1, NOMBRE_ESCONDITE[i]);
 }
@@ -343,35 +336,32 @@ void dibujaRevelacion() {
     char cabecera[18];
     snprintf(cabecera, sizeof(cabecera), "FRAGMENTO %d", i + 1);
     limpiaPantalla(t.colorPantalla, cabecera);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setCursor(4, 34);
-    M5Cardputer.Display.println("El recuerdo de Vega responde en el HEX.");
-    M5Cardputer.Display.println("1. Observa su color y su figura.");
-    M5Cardputer.Display.println("2. Estudia las pistas y el tablero.");
-    M5Cardputer.Display.println("3. Decide donde encaja la tarjeta.");
+    M5Cardputer.Display.setCursor(4, 31);
+    M5Cardputer.Display.println("Observa color");
+    M5Cardputer.Display.println("y figura del HEX.");
+    M5Cardputer.Display.println("Busca su lugar");
+    M5Cardputer.Display.println("en el tablero.");
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-    M5Cardputer.Display.setCursor(4, 91);
-    M5Cardputer.Display.println("Anota la figura. La cifra vendra luego.");
+    M5Cardputer.Display.println("Anota la figura.");
     M5Cardputer.Display.setTextColor(GREEN, BLACK);
-    M5Cardputer.Display.setCursor(4, 113);
-    M5Cardputer.Display.println("ENTER cuando termine el equipo");
+    M5Cardputer.Display.setCursor(4, 114);
+    M5Cardputer.Display.println("ENTER: continua");
 }
 
 void dibujaBuscaCodificador() {
-    limpiaPantalla(CYAN, "FALTA UNA CLAVE");
-    M5Cardputer.Display.setTextSize(1);
+    limpiaPantalla(CYAN, "CODIFICADOR");
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setCursor(4, 30);
-    M5Cardputer.Display.println("Las figuras aun guardan otro secreto.");
-    M5Cardputer.Display.println("Busca el CODIFICADOR DE OBJETOS:");
+    M5Cardputer.Display.setCursor(4, 37);
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
     for (int i = 0; i < 3; i++) {
         M5Cardputer.Display.println(PISTA_CODIFICADOR[i]);
     }
     M5Cardputer.Display.setTextColor(GREEN, BLACK);
     M5Cardputer.Display.setCursor(4, 113);
-    M5Cardputer.Display.println("ENTER cuando lo tengais");
+    M5Cardputer.Display.println("ENTER: continua");
     Serial.printf("Codificador, escondite: %s\n",
                   NOMBRE_ESCONDITE_CODIFICADOR);
 }
@@ -379,42 +369,44 @@ void dibujaBuscaCodificador() {
 void dibujaEntradaCodigo() {
     String visible = codigoEscrito;
     while (visible.length() < 3) visible += '_';
-    M5Cardputer.Display.fillRect(0, 75, 240, 30, BLACK);
+
+    // Los tres digitos son la accion principal de esta pantalla: se muestran
+    // grandes para que el equipo pueda leerlos desde cierta distancia.
+    M5Cardputer.Display.fillRect(0, 68, 240, 45, BLACK);
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-    M5Cardputer.Display.setCursor(4, 79);
-    M5Cardputer.Display.print("Codigo: ");
-    M5Cardputer.Display.println(visible);
+    M5Cardputer.Display.setCursor(4, 78);
+    M5Cardputer.Display.print("Codigo:");
+    M5Cardputer.Display.setTextSize(3);
+    M5Cardputer.Display.setCursor(94, 73);
+    M5Cardputer.Display.print(visible);
 }
 
 void dibujaClave() {
     limpiaPantalla(CYAN, "ABRE EL PORTAL");
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setCursor(4, 33);
-    M5Cardputer.Display.println("El guardian ha aceptado el mensaje.");
-    M5Cardputer.Display.println("Usa el codificador que encontraste.");
-    M5Cardputer.Display.println("Escribe la combinacion que dedujiste.");
+    M5Cardputer.Display.println("Escribe la clave.");
+    M5Cardputer.Display.println("DEL: borra");
     dibujaEntradaCodigo();
-    M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
-    M5Cardputer.Display.setCursor(4, 116);
-    M5Cardputer.Display.println("ENTER comprueba | DEL borra");
+    M5Cardputer.Display.setTextColor(GREEN, BLACK);
+    M5Cardputer.Display.setCursor(4, 115);
+    M5Cardputer.Display.println("ENTER: prueba");
 }
 
 void dibujaHistoria() {
     limpiaPantalla(MAGENTA, "MENSAJE OCULTO");
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(3);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setCursor(4, 34);
     for (int i = 0; i < 3; i++) {
         M5Cardputer.Display.println(RETO_HISTORIA[i]);
     }
-    M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-    M5Cardputer.Display.setCursor(4, 90);
-    M5Cardputer.Display.println("Cuenta la historia al guardian.");
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(GREEN, BLACK);
-    M5Cardputer.Display.setCursor(4, 116);
-    M5Cardputer.Display.println("ENTER cuando el guardian la acepte");
+    M5Cardputer.Display.setCursor(4, 114);
+    M5Cardputer.Display.println("ENTER: responde");
 }
 
 void dibujaVictoria() {
@@ -424,14 +416,15 @@ void dibujaVictoria() {
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
     M5Cardputer.Display.drawString("DESBLOQUEADO", 120, 54);
     M5Cardputer.Display.setTextFont(&fonts::Font0);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.drawString(MENSAJE_FINAL[0], 120, 88);
-    M5Cardputer.Display.drawString(MENSAJE_FINAL[1], 120, 101);
     M5Cardputer.Display.setTextDatum(top_left);
+    M5Cardputer.Display.setCursor(4, 82);
+    M5Cardputer.Display.println(MENSAJE_FINAL[0]);
+    M5Cardputer.Display.println(MENSAJE_FINAL[1]);
     M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
-    M5Cardputer.Display.setCursor(4, 122);
-    M5Cardputer.Display.println("G0 3 s: nueva partida");
+    M5Cardputer.Display.setCursor(4, 116);
+    M5Cardputer.Display.println("G0: reinicia");
 
     M5Cardputer.Speaker.tone(650, 90);   delay(110);
     M5Cardputer.Speaker.tone(950, 90);   delay(110);
@@ -528,7 +521,7 @@ int buscaTarjeta(const String& texto) {
 void muestraErrorTarjeta(const char* titulo, const String& linea1,
                          const String& linea2) {
     limpiaPantalla(RED, titulo);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setCursor(4, 42);
     M5Cardputer.Display.println(linea1);
@@ -550,8 +543,8 @@ void actualizaRfid() {
     if (!leeCodigo(tipo, datos, error)) {
         Serial.printf("Fallo RFID %u, UID %s, tipo %u\n", error, uid.c_str(), tipo);
         muestraErrorTarjeta("NO PUEDO LEERLA",
-                            "Necesito una tarjeta A073 preparada.",
-                            "No se ha modificado nada.");
+                            "Tarjeta A073",
+                            "sin preparar.");
         return;
     }
 
@@ -562,16 +555,16 @@ void actualizaRfid() {
                   uid.c_str(), texto.c_str(), encontrada, esperada);
 
     if (encontrada < 0) {
-        muestraErrorTarjeta("TARJETA SIN PREPARAR",
-                            "No contiene un codigo valido de E3.",
-                            "La programaremos con L5.");
+        muestraErrorTarjeta("TARJETA INVALIDA",
+                            "No es tarjeta E3.",
+                            "Prepara con L5.");
         return;
     }
 
     if (encontrada != esperada) {
         muestraErrorTarjeta("AUN NO LE TOCA",
-                            "Es una tarjeta del juego, pero pertenece",
-                            "a otra pista. Guardala para despues.");
+                            "Es de otra pista.",
+                            "Guardala despues.");
         return;
     }
 
@@ -595,14 +588,14 @@ String codigoCorrecto() {
 void codigoFallido() {
     intentosCodigo++;
     M5Cardputer.Speaker.tone(160, 220);
-    M5Cardputer.Display.fillRect(0, 105, 240, 29, BLACK);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.fillRect(0, 103, 240, 31, BLACK);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(RED, BLACK);
-    M5Cardputer.Display.setCursor(4, 108);
+    M5Cardputer.Display.setCursor(4, 106);
     if (intentosCodigo < 3) {
-        M5Cardputer.Display.printf("No coincide. Intento %d", intentosCodigo);
+        M5Cardputer.Display.printf("Fallo: intento %d", intentosCodigo);
     } else {
-        M5Cardputer.Display.println("Revisa las hojas y el tablero.");
+        M5Cardputer.Display.println("Revisa pistas.");
     }
     delay(1500);
     codigoEscrito = "";
@@ -667,7 +660,7 @@ bool gestionaReinicio() {
     if (!esperandoSoltarG0 && M5Cardputer.BtnA.pressedFor(3000)) {
         esperandoSoltarG0 = true;
         limpiaPantalla(YELLOW, "PARTIDA NUEVA");
-        M5Cardputer.Display.setTextSize(1);
+        M5Cardputer.Display.setTextSize(2);
         M5Cardputer.Display.setTextColor(WHITE, BLACK);
         M5Cardputer.Display.setCursor(4, 50);
         M5Cardputer.Display.println("Suelta G0...");

@@ -23,6 +23,7 @@
 #include <Preferences.h>
 #include <Wire.h>
 #include "MFRC522_I2C.h"
+#include "audio_juanita_intro.h"
 
 // ===== 🔧 CAMBIA ESTO =============================================
 
@@ -121,6 +122,7 @@ void procesaTeclado();
 void actualizaRfid();
 void actualizaClaveHex();
 bool gestionaReinicio();
+void reproducePresentacionJuanita();
 
 void setup() {
     auto cfg = M5.config();
@@ -197,6 +199,12 @@ void apagaHex() {
     }
 }
 
+// La frase se reproduce desde memoria de programa, sin requerir SD ni red.
+void reproducePresentacionJuanita() {
+    M5Cardputer.Speaker.playWav(juanita_intro_wav, sizeof(juanita_intro_wav),
+                                1, 0, true);
+}
+
 bool iniciaRfid() {
     Wire.begin(PIN_SDA, PIN_SCL, 100000);
     lector.PCD_Init();
@@ -223,8 +231,7 @@ void dibujaIntro() {
     limpiaPantalla(MAGENTA, "MISTERIO DE JUANITA");
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setCursor(4, 34);
-    M5Cardputer.Display.println("Una presencia amable intenta hablar.");
+    M5Cardputer.Display.setCursor(4, 42);
     M5Cardputer.Display.println("Cuatro memorias se han perdido");
     M5Cardputer.Display.println("entre los susurros de la casa.");
     M5Cardputer.Display.setTextSize(2);
@@ -390,16 +397,16 @@ void muestraMemoria(int i, const String& uid) {
     const MemoriaFantasma& m = MEMORIAS[i];
     limpiaPantalla(m.colorPantalla, "MEMORIA ENCONTRADA");
 
-    M5Cardputer.Display.fillRoundRect(10, 35, 220, 54, 6, m.colorPantalla);
+    M5Cardputer.Display.fillRoundRect(10, 40, 220, 40, 6, m.colorPantalla);
     M5Cardputer.Display.setTextDatum(middle_center);
     M5Cardputer.Display.setTextColor(i == MEM_AMARILLA ? BLACK : WHITE,
                                      m.colorPantalla);
-    M5Cardputer.Display.setTextFont(&fonts::FreeSansBold18pt7b);
+    M5Cardputer.Display.setTextFont(&fonts::Font0);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString(String(m.nombre) + " = " + m.digito,
-                                   120, 62);
+                                   120, 60);
 
     M5Cardputer.Display.setTextDatum(top_left);
-    M5Cardputer.Display.setTextFont(&fonts::Font0);
     M5Cardputer.Display.setTextSize(1);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setCursor(4, 98);
@@ -525,6 +532,7 @@ void procesaTeclado() {
     auto teclas = M5Cardputer.Keyboard.keysState();
 
     if (escena == INTRO && teclas.enter) {
+        reproducePresentacionJuanita();
         cambiaEscena(BUSCA_TARJETA_1);
         return;
     }
