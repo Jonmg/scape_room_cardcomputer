@@ -27,7 +27,6 @@ CardputerLab/
 ├── E2_MisterioJuanita/         aventura de cuatro tarjetas
 ├── E3_EscapeRoomAvanzado/      juego completo con material imprimible
 ├── sube.sh                     compila, carga y abre el monitor serie
-├── HANDOFF.md                  notas técnicas y estado de las pruebas
 ├── LICENSE                     licencia MIT
 └── README.md                   esta guía
 ```
@@ -92,6 +91,8 @@ Documentación: [M5Stack Unit HEX](https://docs.m5stack.com/en/unit/hex).
 
 El **Unit RFID2** es un lector/escritor de tarjetas de 13,56 MHz basado en el
 chip WS1850S. Se comunica por el bus **I²C** y utiliza la dirección `0x28`.
+El Cardputer ADV no incorpora NFC/RFID: todas las actividades con tarjetas de
+este repositorio requieren este módulo externo.
 
 - El **UID** identifica la tarjeta y viene grabado de fábrica.
 - Algunas tarjetas también tienen memoria de usuario que se puede leer y
@@ -162,6 +163,32 @@ material está explicado en el
 Antes de jugar, `L5_RfidEscribir` prepara las tres tarjetas con identificadores
 de color y figura. Consulta su [guía de uso](L5_RfidEscribir/GUIA.md) y no uses
 tarjetas que ya contengan información importante.
+
+### Una partida, un firmware
+
+Cada *escape room* mantiene sus escenas dentro de un único sketch. Al leer una
+tarjeta RFID, el juego cambia de escena y muestra la siguiente pista: no carga
+otro programa ni necesita un portátil durante la partida. Esto permite que el
+equipo juegue con batería y que el progreso se guarde de forma local.
+
+### Diseño de pantallas de juego
+
+La pantalla del Cardputer es pequeña, pero el equipo debe poder leerla sin
+acercarse a ella. En los *escape rooms*, toda la información necesaria para
+avanzar —historia, pistas, estados, errores, resultados y acciones— se muestra
+con `TextSize(2)` como mínimo. `TextSize(1)` se reserva para el pie de pantalla:
+reinicio con G0, UID, modo demo o información técnica no esencial.
+
+Con `fonts::Font0` a tamaño 2 caben aproximadamente 19 caracteres por línea
+con los márgenes habituales. Cuando una frase no entra, se reescribe en líneas
+cortas o se reparte en pantallas; no se hace la letra más pequeña. Los códigos
+pueden usar tamaño 3 si siguen dejando protagonismo a la historia y a la acción
+que el equipo debe realizar.
+
+El altavoz se usa normalmente para tonos de confirmación, error o celebración.
+También puede reproducir WAV integrado en el firmware o desde microSD. La voz
+sintetizada se reserva para efectos robóticos intencionados: para narración es
+preferible una grabación revisada por quien organiza la partida.
 
 ## Hardware necesario
 

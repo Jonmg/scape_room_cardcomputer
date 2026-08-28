@@ -23,7 +23,6 @@
 #include <Preferences.h>
 #include <Wire.h>
 #include "MFRC522_I2C.h"
-#include "audio_juanita_intro.h"
 
 // ===== 🔧 CAMBIA ESTO =============================================
 
@@ -122,7 +121,6 @@ void procesaTeclado();
 void actualizaRfid();
 void actualizaClaveHex();
 bool gestionaReinicio();
-void reproducePresentacionJuanita();
 
 void setup() {
     auto cfg = M5.config();
@@ -199,12 +197,6 @@ void apagaHex() {
     }
 }
 
-// La frase se reproduce desde memoria de programa, sin requerir SD ni red.
-void reproducePresentacionJuanita() {
-    M5Cardputer.Speaker.playWav(juanita_intro_wav, sizeof(juanita_intro_wav),
-                                1, 0, true);
-}
-
 bool iniciaRfid() {
     Wire.begin(PIN_SDA, PIN_SCL, 100000);
     lector.PCD_Init();
@@ -230,14 +222,14 @@ void limpiaPantalla(uint16_t colorTitulo, const char* titulo) {
 void dibujaIntro() {
     limpiaPantalla(MAGENTA, "MISTERIO DE JUANITA");
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setCursor(4, 42);
-    M5Cardputer.Display.println("Cuatro memorias se han perdido");
-    M5Cardputer.Display.println("entre los susurros de la casa.");
     M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.setCursor(4, 34);
+    M5Cardputer.Display.println("Cuatro memorias");
+    M5Cardputer.Display.println("se han perdido");
+    M5Cardputer.Display.println("entre susurros.");
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
     M5Cardputer.Display.setCursor(4, 88);
-    M5Cardputer.Display.println("ENTER para escuchar");
+    M5Cardputer.Display.println("ENTER: empieza");
     M5Cardputer.Display.setTextSize(1);
     M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
     M5Cardputer.Display.setCursor(4, 121);
@@ -272,52 +264,48 @@ void dibujaRuta() {
     M5Cardputer.Display.println(PISTAS_RUTA[i][0]);
     M5Cardputer.Display.println(PISTAS_RUTA[i][1]);
     M5Cardputer.Display.println(PISTAS_RUTA[i][2]);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-    M5Cardputer.Display.setCursor(4, 112);
-    M5Cardputer.Display.println("Trae la llave y acercala al RFID2");
+    M5Cardputer.Display.setCursor(4, 106);
+    M5Cardputer.Display.println("Acercala al RFID2");
 }
 
 void dibujaCambioHex() {
     limpiaPantalla(YELLOW, "CAMBIO AL HEX");
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setCursor(4, 31);
-    M5Cardputer.Display.println("1. Desconecta USB y pon OFF");
-    M5Cardputer.Display.println("2. Cambia RFID2 por HEX");
-    M5Cardputer.Display.println("3. Port A en 5VOUT");
-    M5Cardputer.Display.println("4. Pon ON y vuelve a encender");
-    M5Cardputer.Display.setTextColor(GREEN, BLACK);
-    M5Cardputer.Display.setCursor(4, 109);
-    M5Cardputer.Display.println("Las cuatro memorias estan guardadas.");
+    M5Cardputer.Display.println("1. Quita USB.");
+    M5Cardputer.Display.println("2. Pon OFF.");
+    M5Cardputer.Display.println("3. Cambia al HEX.");
+    M5Cardputer.Display.println("4. Port A: 5VOUT");
+    M5Cardputer.Display.println("5. Pon ON.");
 }
 
 void dibujaEntradaCodigo() {
     String visible = codigoEscrito;
     while (visible.length() < 4) visible += '_';
 
-    M5Cardputer.Display.fillRect(0, 79, 240, 27, BLACK);
+    M5Cardputer.Display.fillRect(0, 80, 240, 27, BLACK);
     M5Cardputer.Display.setTextDatum(top_left);
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-    M5Cardputer.Display.setCursor(4, 82);
+    M5Cardputer.Display.setCursor(4, 83);
     M5Cardputer.Display.print("Codigo: ");
     M5Cardputer.Display.println(visible);
 }
 
 void dibujaClaveFinal() {
     limpiaPantalla(CYAN, "MENSAJE DEL HEX");
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setCursor(4, 32);
-    M5Cardputer.Display.println("El HEX ordena las cuatro memorias.");
-    M5Cardputer.Display.println("Sustituye cada color por el numero");
-    M5Cardputer.Display.println("que apuntaste al encontrarla.");
+    M5Cardputer.Display.println("El HEX marca orden");
+    M5Cardputer.Display.println("DEL: borra");
     dibujaEntradaCodigo();
-    M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
-    M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setCursor(4, 116);
-    M5Cardputer.Display.println("ENTER comprueba   DEL borra");
+    M5Cardputer.Display.setTextColor(GREEN, BLACK);
+    M5Cardputer.Display.setCursor(4, 115);
+    M5Cardputer.Display.println("ENTER: prueba");
 }
 
 void dibujaVictoria() {
@@ -327,9 +315,9 @@ void dibujaVictoria() {
     M5Cardputer.Display.setTextColor(YELLOW, BLACK);
     M5Cardputer.Display.drawString("GRACIAS", 120, 58);
     M5Cardputer.Display.setTextFont(&fonts::Font0);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.drawString("El carino deja huellas", 120, 94);
+    M5Cardputer.Display.drawString("El carino queda.", 120, 98);
     M5Cardputer.Display.setTextDatum(top_left);
     M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
     M5Cardputer.Display.setCursor(4, 121);
@@ -383,7 +371,7 @@ bool uidYaUsado(const String& uid) {
 
 void muestraTarjetaIncorrecta(const String& uid, const char* motivo) {
     limpiaPantalla(RED, "SUSURRO EQUIVOCADO");
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setCursor(4, 39);
     M5Cardputer.Display.println(motivo);
@@ -407,11 +395,12 @@ void muestraMemoria(int i, const String& uid) {
                                    120, 60);
 
     M5Cardputer.Display.setTextDatum(top_left);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setCursor(4, 98);
-    M5Cardputer.Display.println("Apuntad color y numero.");
+    M5Cardputer.Display.setCursor(4, 94);
+    M5Cardputer.Display.println("Anota color y cifra");
     M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
+    M5Cardputer.Display.setTextSize(1);
     M5Cardputer.Display.setCursor(4, 119);
     M5Cardputer.Display.println(uid);
 
@@ -440,10 +429,10 @@ void actualizaRfid() {
     Serial.printf("Memoria %d -> UID: %s\n", i + 1, uid.c_str());
 
     bool correcta;
-    const char* motivo = "No es la llave de este susurro.";
+    const char* motivo = "Llave incorrecta.";
     if (MODO_DEMO_UID) {
         correcta = !uidYaUsado(uid);
-        if (!correcta) motivo = "Esa llave ya revelo una memoria.";
+        if (!correcta) motivo = "Llave repetida.";
     } else {
         correcta = uid.equalsIgnoreCase(UID_TARJETAS[i]);
     }
@@ -504,14 +493,14 @@ void actualizaClaveHex() {
 void codigoFallido() {
     intentosCodigo++;
     M5Cardputer.Speaker.tone(160, 220);
-    M5Cardputer.Display.fillRect(0, 106, 240, 28, BLACK);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.fillRect(0, 103, 240, 31, BLACK);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(RED, BLACK);
-    M5Cardputer.Display.setCursor(4, 108);
+    M5Cardputer.Display.setCursor(4, 106);
     if (intentosCodigo < 3) {
-        M5Cardputer.Display.printf("No coincide. Intento %d", intentosCodigo);
+        M5Cardputer.Display.printf("Fallo: intento %d", intentosCodigo);
     } else {
-        M5Cardputer.Display.println("Pista: ordena por colores del HEX.");
+        M5Cardputer.Display.println("Ordena colores.");
     }
     delay(1300);
     codigoEscrito = "";
@@ -532,7 +521,6 @@ void procesaTeclado() {
     auto teclas = M5Cardputer.Keyboard.keysState();
 
     if (escena == INTRO && teclas.enter) {
-        reproducePresentacionJuanita();
         cambiaEscena(BUSCA_TARJETA_1);
         return;
     }

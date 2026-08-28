@@ -58,9 +58,9 @@ const char* PISTA_LINEA_1[3] = {
     "Busca bajo algo con"
 };
 const char* PISTA_LINEA_2[3] = {
-    "que marca el tiempo.",
+    "marca el tiempo.",
     "muchas historias.",
-    "patas que no camina."
+    "patas, no camina."
 };
 
 // Tabla de sustitucion: cada color representa un numero.
@@ -270,36 +270,34 @@ void dibujaClaveHex() {
     }
 
     M5Cardputer.Display.setTextDatum(top_left);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
     M5Cardputer.Display.setCursor(4, 57);
-    M5Cardputer.Display.println("Sustituye los 4 destellos por numeros");
+    M5Cardputer.Display.println("Luz = numero");
     dibujaEntradaCodigo();
-    M5Cardputer.Display.setTextColor(DARKGREY, BLACK);
+    M5Cardputer.Display.setTextColor(GREEN, BLACK);
     M5Cardputer.Display.setCursor(4, 112);
-    M5Cardputer.Display.println("ENTER comprueba   DEL borra");
+    M5Cardputer.Display.println("ENTER: prueba");
 }
 
 void dibujaCambioRfid() {
     limpiaPantalla(YELLOW, "CAMBIO DE MODULO");
     M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setCursor(4, 31);
 
     if (CAMBIO_MANUAL_MODULOS) {
-        M5Cardputer.Display.println("1. Desconecta el cable USB");
-        M5Cardputer.Display.println("2. Pon el interruptor en OFF");
-        M5Cardputer.Display.println("3. Cambia HEX por RFID2");
-        M5Cardputer.Display.println("4. Port A en 5VOUT");
-        M5Cardputer.Display.println("5. Pon ON y vuelve a encender");
-        M5Cardputer.Display.setTextColor(GREEN, BLACK);
-        M5Cardputer.Display.setCursor(4, 112);
-        M5Cardputer.Display.println("El progreso ya esta guardado.");
+        M5Cardputer.Display.println("1. Quita USB.");
+        M5Cardputer.Display.println("2. Pon OFF.");
+        M5Cardputer.Display.println("3. Cambia al RFID2.");
+        M5Cardputer.Display.println("4. Port A: 5VOUT");
+        M5Cardputer.Display.println("5. Pon ON.");
     } else {
         M5Cardputer.Display.setTextColor(RED, BLACK);
         M5Cardputer.Display.println("NO VEO EL RFID2");
         M5Cardputer.Display.setTextColor(WHITE, BLACK);
-        M5Cardputer.Display.println("Revisa Port A y reinicia.");
+        M5Cardputer.Display.println("Revisa Port A");
+        M5Cardputer.Display.println("y reinicia.");
     }
 }
 
@@ -403,11 +401,11 @@ void actualizaHex() {
 void codigoFallido() {
     intentosCodigo++;
     M5Cardputer.Speaker.tone(180, 180);
-    M5Cardputer.Display.fillRect(0, 103, 240, 28, BLACK);
+    M5Cardputer.Display.fillRect(0, 103, 240, 31, BLACK);
     M5Cardputer.Display.setTextColor(RED, BLACK);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.setCursor(4, 106);
-    M5Cardputer.Display.printf("No coincide. Intento %d", intentosCodigo);
+    M5Cardputer.Display.printf("Fallo: intento %d", intentosCodigo);
     delay(1000);
     codigoEscrito = "";
     dibujaClaveHex();
@@ -513,11 +511,11 @@ void actualizaRfid() {
     Serial.printf("Tarjeta %d -> UID: %s\n", i + 1, uid.c_str());
 
     bool correcta;
-    const char* mensajeError = "No es la llave de este nivel.";
+    const char* mensajeError = "No es esta llave.";
 
     if (MODO_DEMO_UID) {
         correcta = !uidYaUsado(uid);
-        if (!correcta) mensajeError = "Esa tarjeta ya fue utilizada.";
+        if (!correcta) mensajeError = "Llave repetida.";
     } else {
         correcta = uid.equalsIgnoreCase(UID_TARJETAS[i]);
     }
@@ -536,7 +534,7 @@ void actualizaRfid() {
         memoria.putString((String("uid") + i).c_str(), uid);
     }
 
-    muestraResultadoTarjeta(true, uid, "Has abierto este nivel.");
+    muestraResultadoTarjeta(true, uid, "Nivel abierto.");
     delay(2500); // da tiempo a apuntar el UID mostrado en pantalla
 
     if (i == 2) cambiaEscena(VICTORIA);

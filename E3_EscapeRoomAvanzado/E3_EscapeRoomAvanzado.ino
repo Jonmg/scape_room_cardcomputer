@@ -182,7 +182,7 @@ void setup() {
     M5Cardputer.begin(cfg, true);
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextFont(&fonts::Font0);
-    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Speaker.setVolume(70);
     Serial.begin(115200);
 
